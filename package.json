@@ -1,0 +1,19 @@
+{
+  "name": "student-attendance-system",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LuongHongTienDat/student-attendance-system.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LuongHongTienDat/student-attendance-system/issues"
+  },
+  "homepage": "https://github.com/LuongHongTienDat/student-attendance-system#readme"
+}
