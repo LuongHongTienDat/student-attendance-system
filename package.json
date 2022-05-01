@@ -2,8 +2,10 @@
   "name": "student-attendance-system",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -15,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/LuongHongTienDat/student-attendance-system/issues"
   },
-  "homepage": "https://github.com/LuongHongTienDat/student-attendance-system#readme"
+  "homepage": "https://github.com/LuongHongTienDat/student-attendance-system#readme",
+  "dependencies": {
+    "nodemon": "^2.0.16"
+  }
 }
