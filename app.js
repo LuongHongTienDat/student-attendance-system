@@ -18,7 +18,7 @@ app.use(customMid.error_handle);
 app.use(customMid.not_found);
 
 //start server
-const PORT = process.env.PORT||3000;
+const PORT = process.env.PORT || 3000;
 const start = async ()=>{
     try{
         app.listen(PORT,()=>{
