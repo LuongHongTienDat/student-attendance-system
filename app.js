@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const fileUpload = require('express-fileupload');
 require('dotenv').config();
 const customMid = require('./middleware/index.js')
 const routes = require('./routes/routes.js');
@@ -7,6 +8,7 @@ const routes = require('./routes/routes.js');
 
 
 //parse-middleware
+app.use(fileUpload());
 app.use(express.urlencoded({extended:true}));
 app.use(express.json());
 

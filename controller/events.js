@@ -39,12 +39,17 @@ const addEvent = async (req,res,next)=>{
             start_date,
             end_date
         }*/
-        await knex('events').insert({
-            ...req.body,
-            creator_email:email,
-            id:crypto.randomUUID(),
-            status:'pending'
-        });
+        try{
+            await knex('events').insert({
+                id:crypto.randomUUID(),//front or back?
+                ...req.body,
+                creator_email:email, 
+                status:'pending'
+            });
+        }catch(error){
+            throw new customError("invalid input data",400);
+        }
+        
 
         //server response
         res.status(200).json({
