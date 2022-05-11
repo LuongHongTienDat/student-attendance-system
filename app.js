@@ -3,8 +3,10 @@ const app = express();
 require('dotenv').config();
 const customMid = require('./middleware/index.js')
 const routes = require('./routes/routes.js');
+const path = require('path');
 
 
+app.use(express.static(path.join(__dirname, 'public')));
 
 //parse-middleware
 app.use(express.urlencoded({extended:true}));

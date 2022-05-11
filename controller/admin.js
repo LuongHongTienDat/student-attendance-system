@@ -1,4 +1,8 @@
 const knex = require('../model/connectDB');
+const formidable = require('formidable');
+const path = require('path');
+const fs = require('fs');
+const { dirname } = require('path');
 
 const getPendingEvents = async (req,res,next)=>{
     try{
@@ -181,5 +185,102 @@ const updateRoleUser = async(req,res,next)=>{
         next(error);
     }
 }
+
+const uploadFile = async(req,res,next)=>{
+    try{
+        // Set up
+        const form = new formidable.IncomingForm();
+        form.parse(req, (err, fields, files) => {
+            if (!files.file.originalFilename.match(/\.(xlsx|csv)$/i)){
+                res.status(400).json({ msg: files.file.originalFilename + " is not allowed"});
+            }
+            var oldPath = files.file.filepath;
+            var newPath = path.join(path.dirname(__dirname), "public", "files", files.file.originalFilename);
+            var rawData = fs.readFileSync(oldPath);
+            //res.json({ oldPath, newPath});
+            fs.writeFile(newPath, rawData, async function(err){
+                var newFile = {
+                    name: fields.name,
+                    fileName: files.file.originalFilename
+                }
+                if (err) { res.json({mag: "error"})}
+                var temp = await knex('files').where('fileName', '=', newFile.fileName).first();
+                if (temp){
+                    await knex('files')
+                    .where('fileName', '=', newFile.fileName)
+                    .update({
+                      name: fields.name
+                    })
+                    .then( () => {
+                        res.json({
+                            msg: "success",
+                            data: newFile
+                        });
+                    })                   
+                }
+                else {
+                    await knex('files')
+                    .insert(newFile)
+                    .then( () => {
+                        res.json({
+                            msg: "success",
+                            data: newFile
+                        });
+                    })
+                }
+            })
+        });       
+    } catch(error) {
+        next(error);
+    }
+}
+
+const getFiles = async(req,res,next)=>{
+    try{
+        const data = await knex('files').select('*');
+        res.status(200).json({
+            msg: "success",
+            data: data
+        })      
+    } catch(error) {
+        next(error);
+    }
+}
+
+const getFile = async(req,res,next)=>{
+    try{
+        var options = {
+            root:  path.join(path.dirname(__dirname), "public", "files")
+        };
+         
+        var fileName = req.body.fileName;
+        console.log(fileName);
+        res.sendFile(fileName, options, function (err) {
+            if (err) {
+                next(err);
+            } else {
+                console.log('Sent:', fileName);
+            }
+        });     
+    } catch(error) {
+        next(error);
+    }
+}
+
+const deleteFile = async(req,res,next)=>{
+    try{
+        fs.unlink(path.join(path.dirname(__dirname), "public", "files", req.body.fileName), async function(err){
+            await knex('files')
+                .where('fileName', '=', req.body.fileName)
+                .del()           
+            res.json({
+                msg: "success"
+            })
+       }); 
+
+    } catch(error) {
+        next(error);
+    }
+}
 module.exports = { getPendingEvents, getCheckedEvents, getPendingUsers, getCheckedUsers,
-    updateStatusEvent, updateStatusUser, updateRoleUser };
+    updateStatusEvent, updateStatusUser, updateRoleUser, uploadFile, getFiles, getFile, deleteFile}
