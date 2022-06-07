@@ -1,7 +1,7 @@
 const knex = require('../model/connectDB');
-const formidable = require('formidable');
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs/promises');
+const xlsx = require('xlsx');
 const { dirname } = require('path');
 
 const getPendingEvents = async (req,res,next)=>{
@@ -186,56 +186,54 @@ const updateRoleUser = async(req,res,next)=>{
     }
 }
 
-const uploadFile = async(req,res,next)=>{
+const addAvailableFile = async(req,res,next)=>{
     try{
-        // Set up
-        const form = new formidable.IncomingForm();
-        form.parse(req, (err, fields, files) => {
-            if (!files.file.originalFilename.match(/\.(xlsx|csv)$/i)){
-                res.status(400).json({ msg: files.file.originalFilename + " is not allowed"});
-            }
-            var oldPath = files.file.filepath;
-            var newPath = path.join(path.dirname(__dirname), "public", "files", files.file.originalFilename);
-            var rawData = fs.readFileSync(oldPath);
-            //res.json({ oldPath, newPath});
-            fs.writeFile(newPath, rawData, async function(err){
-                var newFile = {
-                    name: fields.name,
-                    fileName: files.file.originalFilename
-                }
-                if (err) { res.json({mag: "error"})}
-                var temp = await knex('files').where('fileName', '=', newFile.fileName).first();
-                if (temp){
-                    await knex('files')
-                    .where('fileName', '=', newFile.fileName)
-                    .update({
-                      name: fields.name
-                    })
-                    .then( () => {
-                        res.json({
-                            msg: "success",
-                            data: newFile
-                        });
-                    })                   
-                }
-                else {
-                    await knex('files')
-                    .insert(newFile)
-                    .then( () => {
-                        res.json({
-                            msg: "success",
-                            data: newFile
-                        });
-                    })
-                }
+        const {name} = req.body;
+        const fileName = req.files.availableList.name.split('.').slice(0, -1).join('.')
+        var temp = await knex('files').select("*").where('fileName', '=', fileName).first();
+
+        if (temp) {
+            res.status(400).json({
+                msg:'This file name has existed'
+            });      
+            return;
+        }
+
+        let workbook;
+        try{
+            workbook = await xlsx.read(req.files.availableList.data,{type:'buffer'});            
+        }catch(error){
+            next(error);
+        }
+
+        //workbook.Sheets.{sheet that have data}
+        const data = xlsx.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]); 
+        const filePath = path.join(__dirname,'../public/avail_list/', fileName+'.json')
+
+        await fs.writeFile(filePath, JSON.stringify(data))
+
+        var temp = await knex('files').where('fileName', '=', fileName).first();
+        await knex('files')
+            .insert({
+                name,
+                fileName
             })
-        });       
+        res.json({
+            msg: "success",
+            data: {
+                name,
+                fileName
+            }
+        });
+        
+            
+             
     } catch(error) {
         next(error);
     }
 }
 
-const getFiles = async(req,res,next)=>{
+const getAvailableFiles = async(req,res,next)=>{
     try{
         const data = await knex('files').select('*');
         res.status(200).json({
@@ -247,40 +245,32 @@ const getFiles = async(req,res,next)=>{
     }
 }
 
-const getFile = async(req,res,next)=>{
+const getAvailableFile = async(req,res,next)=>{
     try{
-        var options = {
-            root:  path.join(path.dirname(__dirname), "public", "files")
-        };
-         
-        var fileName = req.body.fileName;
-        console.log(fileName);
-        res.sendFile(fileName, options, function (err) {
-            if (err) {
-                next(err);
-            } else {
-                console.log('Sent:', fileName);
-            }
-        });     
+        const fileName = req.params.fileName;
+        data = JSON.parse(await fs.readFile(path.join(__dirname,'../public/avail_list/',fileName+'.json'),'utf8'));
+        res.json({
+            msg: "success",
+            data
+        })
     } catch(error) {
         next(error);
     }
 }
 
-const deleteFile = async(req,res,next)=>{
+const deleteAvailableFile = async(req,res,next)=>{
     try{
-        fs.unlink(path.join(path.dirname(__dirname), "public", "files", req.body.fileName), async function(err){
-            await knex('files')
-                .where('fileName', '=', req.body.fileName)
-                .del()           
-            res.json({
-                msg: "success"
-            })
-       }); 
-
+        const {fileName} = req.body
+        fs.unlink(path.join(__dirname,'../public/avail_list/',fileName+'.json')); 
+        await knex('files')
+            .where('fileName', '=', fileName)
+            .del()           
+        res.json({
+            msg: "success"
+        })
     } catch(error) {
         next(error);
     }
 }
 module.exports = { getPendingEvents, getCheckedEvents, getPendingUsers, getCheckedUsers,
-    updateStatusEvent, updateStatusUser, updateRoleUser, uploadFile, getFiles, getFile, deleteFile}
+    updateStatusEvent, updateStatusUser, updateRoleUser, addAvailableFile, getAvailableFiles, getAvailableFile, deleteAvailableFile}
