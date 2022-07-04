@@ -6,7 +6,6 @@ const knex = require('knex')({
         user:process.env.DBuser,
         password:process.env.DBpassword,
         database:process.env.DBtable,
-        timezone: 'UTC',
         dateStrings: true
     }
 })
