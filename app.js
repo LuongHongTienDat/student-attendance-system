@@ -5,7 +5,7 @@ require('dotenv').config();
 const customMid = require('./middleware/index.js')
 const routes = require('./routes/routes.js');
 const path = require('path');
-
+const cors = require('cors')
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -13,7 +13,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(fileUpload());
 app.use(express.urlencoded({extended:true}));
 app.use(express.json());
-
+app.use(cors());
 //routes
 app.use('/api/v1',routes);
 
