@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs/promises');
 const xlsx = require('xlsx');
 const { dirname } = require('path');
-
+const formidable = require('formidable')
 const getPendingEvents = async (req,res,next)=>{
     try{
         const data = await knex('events').where({
@@ -189,9 +189,17 @@ const updateRoleUser = async(req,res,next)=>{
 const addAvailableFile = async(req,res,next)=>{
     try{
         const {name} = req.body;
-        const fileName = req.files.availableList.name.split('.').slice(0, -1).join('.')
-        var temp = await knex('files').select("*").where('fileName', '=', fileName).first();
 
+        const regex = /([a-zA-Z0-9\s_\\.\-\(\):])+(.xlsx|.csv)$/i
+        // const fileName = req.files.availableList.name.split('.').slice(0, -1).join('.')
+        const fileName = req.files.availableList.name
+        if (!regex.test(fileName)){
+            res.status(400).json({
+                msg:'File name or extension can be not valid'
+            });      
+            return;           
+        }
+        var temp = await knex('files').select("*").where('fileName', '=', fileName).first();
         if (temp) {
             res.status(400).json({
                 msg:'This file name has existed'
@@ -199,35 +207,29 @@ const addAvailableFile = async(req,res,next)=>{
             return;
         }
 
-        let workbook;
-        try{
-            workbook = await xlsx.read(req.files.availableList.data,{type:'buffer'});            
-        }catch(error){
-            next(error);
-        }
+        const filePath = path.join(__dirname,'../public/avail_list/', fileName)
 
-        //workbook.Sheets.{sheet that have data}
-        const data = xlsx.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]); 
-        const filePath = path.join(__dirname,'../public/avail_list/', fileName+'.json')
-
-        await fs.writeFile(filePath, JSON.stringify(data))
-
-        var temp = await knex('files').where('fileName', '=', fileName).first();
-        await knex('files')
+        const file = req.files.availableList;
+      
+        file.mv(filePath, async (err) => {
+            if (err) {
+                next(err);
+            }
+            await knex('files')
             .insert({
                 name,
                 fileName
             })
-        res.json({
-            msg: "success",
-            data: {
-                name,
-                fileName
-            }
+            res.json({
+                msg: "success",
+                data: {
+                    name,
+                    fileName
+                }
+            });
         });
+
         
-            
-             
     } catch(error) {
         next(error);
     }
@@ -245,23 +247,68 @@ const getAvailableFiles = async(req,res,next)=>{
     }
 }
 
-const getAvailableFile = async(req,res,next)=>{
+const updateAvailableFile = async(req,res,next)=>{
     try{
-        const fileName = req.params.fileName;
-        data = JSON.parse(await fs.readFile(path.join(__dirname,'../public/avail_list/',fileName+'.json'),'utf8'));
-        res.json({
-            msg: "success",
-            data
-        })
+        const {fileName} = req.body;
+        const fileNameUpload = req.files.availableList.name
+
+        const regex = /([a-zA-Z0-9\s_\\.\-\(\):])+(.xlsx|.csv)$/i
+        // const fileName = req.files.availableList.name.split('.').slice(0, -1).join('.')
+        if (!regex.test(fileNameUpload)){
+            res.status(400).json({
+                msg:'File name or extension can be not valid'
+            });      
+            return;           
+        }
+
+        var temp = await knex('files').select("*").where('fileName', '=', fileName).first();
+        if (!temp) {
+            res.status(400).json({
+                msg:'This file name has not existed'
+            });      
+            return;
+        }
+
+        const filePath = path.join(__dirname,'../public/avail_list/', fileName)
+
+        const file = req.files.availableList;
+      
+        file.mv(filePath, async (err) => {
+            if (err) {
+                next(err);
+            }
+            res.json({
+                msg: "success",
+                data: {
+                    name: temp.name,
+                    fileName
+                }
+            });
+        });
+
+        
     } catch(error) {
         next(error);
     }
 }
 
+// const getAvailableFile = async(req,res,next)=>{
+//     try{
+//         const fileName = req.params.fileName;
+//         data = JSON.parse(await fs.readFile(path.join(__dirname,'../public/avail_list/',fileName),'utf8'));
+//         res.json({
+//             msg: "success",
+//             data
+//         })
+//     } catch(error) {
+//         next(error);
+//     }
+// }
+
 const deleteAvailableFile = async(req,res,next)=>{
     try{
         const {fileName} = req.body
-        fs.unlink(path.join(__dirname,'../public/avail_list/',fileName+'.json')); 
+        fs.unlink(path.join(__dirname,'../public/avail_list/',fileName)); 
         await knex('files')
             .where('fileName', '=', fileName)
             .del()           
@@ -273,4 +320,4 @@ const deleteAvailableFile = async(req,res,next)=>{
     }
 }
 module.exports = { getPendingEvents, getCheckedEvents, getPendingUsers, getCheckedUsers,
-    updateStatusEvent, updateStatusUser, updateRoleUser, addAvailableFile, getAvailableFiles, getAvailableFile, deleteAvailableFile}
+    updateStatusEvent, updateStatusUser, updateRoleUser, addAvailableFile, getAvailableFiles, updateAvailableFile,deleteAvailableFile}
