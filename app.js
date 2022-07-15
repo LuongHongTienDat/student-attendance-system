@@ -11,7 +11,7 @@ const routes = require('./routes/routes.js');
 app.use(fileUpload());
 app.use(express.urlencoded({extended:true}));
 app.use(express.json());
-
+app.use(express.static('public'))
 //routes
 app.use('/api/v1',routes);
 
