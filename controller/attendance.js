@@ -32,6 +32,7 @@ const postEventAttendances = async(req,res,next)=>{ /// posting attendance list 
 
         ///server response
         res.status(200).json({
+            success:true,
             EID:EID,
             data:data
         })
@@ -72,6 +73,7 @@ const getEventAttendances= async (req,res,next)=>{ //gett the attendance list of
             EID:EID
         }).select('SID','fname','lname','check_in','check_out');
         res.status(200).json({
+            success:true,
             data:data,
         })
     }catch(err){
@@ -80,19 +82,16 @@ const getEventAttendances= async (req,res,next)=>{ //gett the attendance list of
 
 }
 const getAvailableAttendanceList = async (req,res,next)=>{ //get all available attendance lists from admin
-    const files = await fs.readdir(path.join(__dirname,"..","public","avail_list"));
-    let data=[];
-    files.forEach(file=>{
-        if (file.endsWith("xlsx")){
-            data.push({
-                name:file,
-                path:`/avail_list/${file}`
-            })
-        }
-    })
-    res.status(200).json({
-        data:data
-    })
+    try{
+        const data = await knex('files').select('*');
+        res.status(200).json({
+            success:true,
+            data:data
+        })
+    }catch(error){
+        next(error)
+    }
+    
 }
 
 
