@@ -7,13 +7,13 @@ const routes = require('./routes/routes.js');
 const path = require('path');
 const cors = require('cors')
 
-app.use(express.static(path.join(__dirname, 'public')));
 
 //parse-middleware
 app.use(fileUpload());
 app.use(express.urlencoded({extended:true}));
 app.use(express.json());
 app.use(cors());
+app.use(express.static('public'))
 //routes
 app.use('/api/v1',routes);
 

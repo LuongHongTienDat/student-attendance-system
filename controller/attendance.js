@@ -3,8 +3,8 @@ const path = require('path');
 const xlsx = require('xlsx');
 const customError=require('../errors/customError');
 const fs = require('fs/promises');
-const { json } = require('express/lib/response');
-const postUserAttendances = async(req,res,next)=>{
+
+const postEventAttendances = async(req,res,next)=>{ /// posting attendance list for a specific event
     try{
         const {EID} = req.body; // get event ID
         
@@ -32,6 +32,7 @@ const postUserAttendances = async(req,res,next)=>{
 
         ///server response
         res.status(200).json({
+            success:true,
             EID:EID,
             data:data
         })
@@ -39,30 +40,59 @@ const postUserAttendances = async(req,res,next)=>{
         next(err)
     }
 }
-const postAvailableAttendances = async(req,res,next)=>{
-    try{
-        const {EID}=req.body //get event ID
-        const fileName = req.params.fileName; //get file name
-        let data;
-        try{
-            data = JSON.parse(await fs.readFile(path.join(__dirname,'../public/avail_list/',fileName+'.json'),'utf8'));
-            for (let i=0;i<data.length;i++){
-                await knex('event_attendances').insert({...data[i],EID:EID});
-            }
-        }catch(error){
-            console.log(error.message);
-            throw new customError("invalid file structure or data have already been added",400);
-        }
+// const postAvailableAttendances = async(req,res,next)=>{
+//     try{
+//         const {EID}=req.body //get event ID
+//         const fileName = req.params.fileName; //get file name
+//         let data;
+//         try{
+//             data = JSON.parse(await fs.readFile(path.join(__dirname,'../public/avail_list/',fileName+'.json'),'utf8'));
+//             for (let i=0;i<data.length;i++){
+//                 await knex('event_attendances').insert({...data[i],EID:EID});
+//             }
+//         }catch(error){
+//             console.log(error.message);
+//             throw new customError("invalid file structure or data have already been added",400);
+//         }
         
 
-        res.status(200).json({
-            EID,
-            data:data
-        })
+//         res.status(200).json({
+//             EID,
+//             data:data
+//         })
 
+//     }    catch(err){
+//         console.log(err)
+//         next(err);
+//     }
+// }
+const getEventAttendances= async (req,res,next)=>{ //gett the attendance list of a specific event
+    try{
+        const {EID}=req.query;
+        const data = await knex('event_attendances').where({
+            EID:EID
+        }).select('SID','fname','lname','check_in','check_out');
+        res.status(200).json({
+            success:true,
+            data:data,
+        })
     }catch(err){
-        console.log(err)
         next(err);
     }
+
 }
-module.exports={postUserAttendances,postAvailableAttendances};
+const getAvailableAttendanceList = async (req,res,next)=>{ //get all available attendance lists from admin
+    try{
+        const data = await knex('files').select('*');
+        res.status(200).json({
+            success:true,
+            data:data
+        })
+    }catch(error){
+        next(error)
+    }
+    
+}
+
+
+module.exports={postEventAttendances,getAvailableAttendanceList,getEventAttendances};
