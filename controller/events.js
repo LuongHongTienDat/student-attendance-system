@@ -27,7 +27,7 @@ const addEvent = async (req,res,next)=>{
     try{
         //get user identifier
         const {email}=req.user;
-
+        var id;
         ////////////////////
         ////checking input data?
         ////////////////////
@@ -40,8 +40,9 @@ const addEvent = async (req,res,next)=>{
             end_date
         }*/
         try{
+            id = crypto.randomUUID();
             await knex('events').insert({
-                id:crypto.randomUUID(),//front or back?
+                id,//front or back?
                 ...req.body,
                 creator_email:email, 
                 status:'pending'
@@ -53,7 +54,8 @@ const addEvent = async (req,res,next)=>{
 
         //server response
         res.status(200).json({
-            msg:`success added event ${req.body.title}`
+            data:{id} ,
+            msg:`success added event ${req.body.name}`
         })
     }catch(error){
         console.log(error);
