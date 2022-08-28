@@ -44,7 +44,8 @@ const getPendingUsers = async(req,res,next) =>{
         const data = await knex('users').where({
             status:"pending"
         })
-        .select('email', 'name', 'status', 'role');
+        .select('email', 'fullName', 'status', 'role');
+
         res.status(200).json({
             msg: "success",
             data: data
@@ -61,7 +62,7 @@ const getCheckedUsers = async(req,res,next)=>{
             status:"accepted"
         }).orWhere({
             status:"rejected"
-        }).select('email', 'name', 'status', 'role');
+        }).select('email', 'fullName', 'status', 'role');
 
         //server response
         res.status(200).json({
