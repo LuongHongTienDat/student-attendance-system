@@ -63,6 +63,23 @@ const addEvent = async (req,res,next)=>{
     }
 }
 
+const getEventDetails = async(req,res,next)=>{
+    try{
+        const {id}=req.params;
+        const data = await knex('events').where({
+            id
+        }).select('*').first();   
+        if (!data){
+            res.status(400).json({
+                msg:'This id does not exist!'
+            });           
+        }
+        res.json(data);     
+    }catch(error){
+        next(error);
+    }
+}
+
 const updateEvent = async(req,res,next)=>{
     try{
 
@@ -79,4 +96,4 @@ const dropEvent = async(req,res,next)=>{
     }
 }
 
-module.exports={getUserEvent,addEvent};
+module.exports={getUserEvent,addEvent,getEventDetails};
