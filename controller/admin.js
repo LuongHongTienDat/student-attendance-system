@@ -216,16 +216,19 @@ const addAvailableFile = async(req,res,next)=>{
             if (err) {
                 next(err);
             }
+            let uploadedTime = (new Date()).toString()
             await knex('files')
             .insert({
                 name,
-                fileName
+                fileName,
+                uploadedTime
             })
             res.json({
                 msg: "success",
                 data: {
                     name,
-                    fileName
+                    fileName,
+                    uploadedTime
                 }
             });
         });

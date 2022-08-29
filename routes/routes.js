@@ -20,6 +20,6 @@ routes.route('/user/attendance/list').get(getAvailableAttendanceList);
 routes.route('/user/attendance/check_in').post(userCheckIn);
 routes.route('/user/attendance/check_out').post(userCheckOut);
 
-routes.use('/admin',adminRoutes)
+routes.use('/admin',customMid.authentication,customMid.admin,adminRoutes)
 
 module.exports=routes;

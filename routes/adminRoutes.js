@@ -2,7 +2,6 @@ const express = require('express');
 const routes = express.Router();
 const  { getPendingEvents, getCheckedEvents, getPendingUsers, getCheckedUsers,
     updateStatusEvent, updateStatusUser, updateRoleUser, addAvailableFile, getAvailableFiles, updateAvailableFile,deleteAvailableFile}= require('../controller/admin');
-const customMid = require('../middleware/index');
 
 routes.route('/event/pending').get(getPendingEvents);
 routes.route('/event/checked').get(getCheckedEvents);

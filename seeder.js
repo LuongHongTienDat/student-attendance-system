@@ -59,6 +59,7 @@ const events = [
         location: "Thủ Đức",
         start_date: (new Date()).toString(),
         end_date: (new Date( new Date().getTime() + 86400000*2 )).toString(),
+
     }, 
     {
         id:crypto.randomUUID(),
@@ -171,6 +172,7 @@ const importData = async () => {
             await knex.schema.createTable('files', function(table) {
                 table.string('fileName').primary();
                 table.string('name').notNullable();
+                table.string('uploadedTime').notNullable();
             });
         }  
         
