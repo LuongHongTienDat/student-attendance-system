@@ -7,7 +7,7 @@ const getUser= async(req,res,next)=>{
         const {email}=req.user;
         const data = await knex('users').where({
             email:email
-        }).first().select('email','fullname','bdate','sid','phone');
+        }).first().select('email','fullName','birthday','id','phone');
 
         //server response
         res.status(200).json({
