@@ -24,13 +24,17 @@ const userCheckIn = async (req,res,next)=>{
             EID:EID,
         }).update({
             check_in:1
-        })
+        });
 
         ///server response
         res.status(200).json({
             msg:'success',
-            EID:EID,
-            
+            data:{
+                lname: data.lname,
+                fname: data.fname,
+                SID: data.SID,
+                EID: data.EID
+            },
         })
     }catch(error){
         next(error);
@@ -62,7 +66,12 @@ const userCheckOut = async (req,res,next)=>{
     
         res.status(200).json({
             msg:'success',
-            EID:EID,
+            data:{
+                lname: data.lname,
+                fname: data.fname,
+                SID: data.SID,
+                EID: data.EID
+            },
         })
     }catch(error){
         next(error)
